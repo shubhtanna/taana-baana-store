@@ -1,8 +1,9 @@
+import json
 import os
 import secrets
 import time
 
-from flask import Flask, abort, flash, redirect, render_template, request, session, url_for
+from flask import Flask, Response, abort, flash, redirect, render_template, request, session, url_for
 
 import catalog as cat
 
@@ -25,6 +26,11 @@ def rupees(n):
 
 
 app.jinja_env.filters["rupees"] = rupees
+
+
+def abs_url(path):
+    """Absolute URL for the current request's host (no hard-coded domain)."""
+    return request.url_root.rstrip("/") + path
 
 
 # ---------- csrf ----------
@@ -54,7 +60,8 @@ def cart_summary():
     for l in session.get("cart", []):
         p = cat.BY_SKU.get(l["sku"])
         if p:
-            lines.append({"p": p, "size": l["size"], "qty": l["qty"], "total": p["price"] * l["qty"]})
+            lines.append({"p": p, "size": l["size"], "qty": l["qty"], "total": p["price"] * l["qty"],
+                          "param": f"{l['sku']}:{l['qty']}"})
     subtotal = sum(l["total"] for l in lines)
     shipping = 0 if not lines or subtotal >= cat.FREE_SHIPPING_FROM else cat.SHIPPING_FEE
     return {"lines": lines, "count": sum(l["qty"] for l in lines), "subtotal": subtotal, "shipping": shipping,
@@ -84,7 +91,25 @@ def collection(slug):
 def product(slug):
     p = cat.BY_SLUG.get(slug) or abort(404)
     related = [x for x in cat.in_category(p["category"]) if x["slug"] != slug][:4]
-    return render_template("product.html", p=p, related=related, available=cat.available_sizes(p))
+    in_stock = bool(cat.available_sizes(p))
+    ld = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": p["name"],
+        "description": p["description"],
+        "sku": p["sku"],
+        "url": abs_url(url_for("product", slug=p["slug"])),
+        "image": abs_url(url_for("static", filename="favicon.svg")),
+        "offers": {
+            "@type": "Offer",
+            "price": p["price"],
+            "priceCurrency": "INR",
+            "availability": "https://schema.org/InStock" if in_stock else "https://schema.org/OutOfStock",
+            "url": abs_url(url_for("product", slug=p["slug"])),
+        },
+    }
+    return render_template("product.html", p=p, related=related, available=cat.available_sizes(p),
+                           ld_json=json.dumps(ld).replace("<", "\\u003c"))
 
 
 @app.get("/search")
@@ -111,7 +136,7 @@ def cart_add():
         lines.append({"sku": p["sku"], "size": size, "qty": qty})
     session["cart"] = lines
     flash(f"Added {p['name']} ({size}) to your bag.", "ok")
-    return redirect(url_for("cart"))
+    return redirect(url_for("cart"), code=303)
 
 
 @app.post("/cart/update")
@@ -129,8 +154,34 @@ def cart():
     return render_template("cart.html", cart=cart_summary())
 
 
+def load_items_param():
+    """Rebuild the cart from a ?items=sku:qty,sku:qty list (no cookies needed)."""
+    raw = request.args.get("items", "")
+    if not raw:
+        return
+    lines = []
+    for part in raw.split(","):
+        sku, _, qty = part.partition(":")
+        p = cat.BY_SKU.get(sku.strip())
+        if not p:
+            continue
+        try:
+            n = int(qty)
+        except ValueError:
+            n = 1
+        # Clamp quantity to what the catalogue offers (max 5 per line, as elsewhere).
+        size = next(iter(cat.available_sizes(p)), None)
+        if not size:
+            continue
+        lines.append({"sku": p["sku"], "size": size, "qty": max(1, min(5, n))})
+    if lines:
+        session["cart"] = lines
+
+
 @app.route("/checkout", methods=["GET", "POST"])
 def checkout():
+    if request.method == "GET":
+        load_items_param()
     summary = cart_summary()
     if not summary["lines"]:
         return redirect(url_for("cart"))
@@ -173,6 +224,42 @@ def about():
 @app.get("/shipping")
 def shipping():
     return render_template("shipping.html")
+
+
+@app.get("/sitemap.xml")
+def sitemap():
+    urls = [url_for("home"), url_for("shipping"), url_for("about")]
+    urls += [url_for("collection", slug=c["slug"]) for c in cat.CATEGORIES]
+    urls += [url_for("product", slug=p["slug"]) for p in cat.PRODUCTS]
+    xml = ['<?xml version="1.0" encoding="UTF-8"?>',
+           '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+    for u in urls:
+        xml.append(f"<url><loc>{abs_url(u)}</loc></url>")
+    xml.append("</urlset>")
+    return Response("\n".join(xml), mimetype="application/xml")
+
+
+@app.get("/llms.txt")
+def llms_txt():
+    lines = ["# Taana Baana",
+             "",
+             "Handwoven kurtas, shirts, sarees and dupattas from 23 weaving families across India,",
+             "based in Jaipur. Prices in Indian rupees; free shipping above ₹1,499.",
+             "",
+             "## Products"]
+    for p in cat.PRODUCTS:
+        lines.append(f"- [{p['name']}]({url_for('product', slug=p['slug'])}): {rupees(p['price'])}")
+    lines += ["",
+              "## How to buy",
+              "",
+              "1. Open a product page and submit its add-to-cart form (POST, works without JavaScript);",
+              "   you are taken to the bag page showing each item's name, size, quantity and price.",
+              "2. The bag page's Checkout link carries the items in the URL",
+              "   (`/checkout?items=<sku>:<qty>,...`), so it opens the same order on any device,",
+              "   no cookies needed.",
+              "3. On checkout, fill in delivery details and place the order (cash on delivery or UPI).",
+              ""]
+    return Response("\n".join(lines), mimetype="text/plain")
 
 
 @app.errorhandler(404)
