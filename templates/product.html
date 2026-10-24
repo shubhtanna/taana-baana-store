@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "_macros.html" import card, garment %}
+{% block title %}{{ p.name }} · Taana Baana{% endblock %}
+{% block description %}{{ p.description }}{% endblock %}
+{% block content %}
+<section class="wrap pdp">
+  <div class="pdp-art">{{ garment(p, "big") }}</div>
+  <div>
+    <p class="crumbs"><a href="{{ url_for('home') }}">Home</a> / <a href="{{ url_for('collection', slug=p.category) }}">{{ p.category|capitalize }}</a></p>
+    <h1>{{ p.name }}</h1>
+    <p class="price big"><strong>{{ p.price|rupees }}</strong>{% if p.mrp > p.price %} <s>{{ p.mrp|rupees }}</s> <span class="off">{{ ((1 - p.price / p.mrp) * 100)|round|int }}% off</span>{% endif %}</p>
+    <p class="muted small">Inclusive of all taxes</p>
+    {% if available %}
+    <form method="post" action="{{ url_for('cart_add') }}" class="buy">
+      <input type="hidden" name="csrf" value="{{ csrf_token() }}">
+      <input type="hidden" name="sku" value="{{ p.sku }}">
+      <label class="size-label">Size
+        <select name="size" id="size" required data-sizes='{{ p.sizes|tojson }}' data-soldout='{{ p.soldout|tojson }}'>
+          <option value="">Select size</option>
+        </select>
+      </label>
+      <div class="size-buttons" id="size-buttons" aria-hidden="true"></div>
+      <label class="size-label">Qty
+        <select name="qty">{% for n in range(1, 6) %}<option>{{ n }}</option>{% endfor %}</select>
+      </label>
+      <button type="submit" class="btn">Add to bag</button>
+    </form>
+    <p class="muted small"><a href="{{ url_for('shipping') }}#sizes">Size guide</a> · Free exchanges within 15 days</p>
+    {% else %}
+    <p class="stock out">Sold out · new pieces are on the loom</p>
+    {% endif %}
+    <p class="desc">{{ p.description }}</p>
+    <dl class="facts">
+      <div><dt>Fabric</dt><dd>{{ p.fabric }}</dd></div>
+      <div><dt>Fit</dt><dd>{{ p.fit }}</dd></div>
+    </dl>
+  </div>
+</section>
+{% if related %}
+<section class="wrap"><h2 class="sec">You may also like</h2><div class="grid">{% for r in related %}{{ card(r) }}{% endfor %}</div></section>
+{% endif %}
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/sizes.js') }}"></script>{% endblock %}

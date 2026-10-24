@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "_macros.html" import card %}
+{% block title %}{{ c.name }} · Taana Baana{% endblock %}
+{% block description %}{{ c.blurb }}.{% endblock %}
+{% block content %}
+<section class="wrap">
+  <p class="crumbs"><a href="{{ url_for('home') }}">Home</a> / {{ c.name }}</p>
+  <div class="head-row">
+    <div><h1 class="page">{{ c.name }}</h1><p class="muted">{{ c.blurb }} · {{ products|length }} pieces</p></div>
+    <form class="sort"><label>Sort <select name="sort" onchange="this.form.submit()">
+      <option value="" {% if not sort %}selected{% endif %}>New in</option>
+      <option value="price" {% if sort == 'price' %}selected{% endif %}>Price: low to high</option>
+      <option value="-price" {% if sort == '-price' %}selected{% endif %}>Price: high to low</option>
+    </select></label><noscript><button class="btn small">Apply</button></noscript></form>
+  </div>
+  <div class="grid">{% for p in products %}{{ card(p) }}{% endfor %}</div>
+</section>
+{% endblock %}

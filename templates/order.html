@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Order placed · Taana Baana{% endblock %}
+{% block content %}
+<section class="wrap thanks">
+  <p class="eyebrow">Thank you</p>
+  <h1 class="page">Your order is placed</h1>
+  <p class="lead">Order {{ o.number }} · {{ o.count }} piece{{ "" if o.count == 1 else "s" }} · {{ o.total|rupees }} · {{ o.payment }}</p>
+  <p class="muted">We'll pack it within 24 hours and ship to {{ o.city }}. Delivery in 3–6 days.</p>
+  <a class="btn" href="{{ url_for('home') }}">Keep browsing</a>
+</section>
+{% endblock %}

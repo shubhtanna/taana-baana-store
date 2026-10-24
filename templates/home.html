@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% from "_macros.html" import card, garment %}
+{% block content %}
+<section class="hero">
+  <div class="wrap hero-in">
+    <div>
+      <p class="eyebrow">Handwoven · Hand-printed · Fairly paid</p>
+      <h1>Clothes with a <em>maker's hand</em> in every thread.</h1>
+      <p class="lead">Kurtas, shirts, sarees and dupattas woven on handlooms in Bagru, Pochampally, Maheshwar and Shantipur. Each piece is a little different, and that's the point.</p>
+      <a class="btn" href="{{ url_for('collection', slug='kurtas') }}">Shop kurtas</a>
+      <a class="btn ghost" href="{{ url_for('collection', slug='sarees') }}">Shop sarees</a>
+    </div>
+    <div class="hero-art">{% for p in featured[:3] %}{{ garment(p, "hero") }}{% endfor %}</div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2 class="sec">Shop the collections</h2>
+  <div class="cats">{% for c in categories %}<a class="cat" href="{{ url_for('collection', slug=c.slug) }}"><strong>{{ c.name }}</strong><span>{{ c.blurb }}</span></a>{% endfor %}</div>
+</section>
+
+<section class="wrap">
+  <h2 class="sec">New from the looms</h2>
+  <div class="grid">{% for p in featured %}{{ card(p) }}{% endfor %}</div>
+</section>
+
+<section class="wrap promise">
+  <div><strong>Made by hand</strong><span>Every piece is woven or printed by hand by the families we work with.</span></div>
+  <div><strong>Easy exchanges</strong><span>Wrong size? Exchange it free within 15 days.</span></div>
+  <div><strong>Natural fibres</strong><span>Cotton, khadi and silk. Nothing synthetic.</span></div>
+</section>
+{% endblock %}

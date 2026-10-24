@@ -1,0 +1,47 @@
+{% macro garment(p, cls="") %}
+<svg class="garment {{ cls }}" viewBox="0 0 200 240" role="img" aria-hidden="true">
+  <defs>
+    <pattern id="pat-{{ p.sku }}" width="16" height="16" patternUnits="userSpaceOnUse">
+      {% if p.pattern == "dots" %}<circle cx="8" cy="8" r="2.2" fill="rgba(255,255,255,.55)"/>
+      {% elif p.pattern == "stripes" %}<rect width="16" height="3" fill="rgba(255,255,255,.18)"/>
+      {% elif p.pattern == "checks" %}<rect width="16" height="4" fill="rgba(255,255,255,.3)"/><rect width="4" height="16" fill="rgba(255,255,255,.3)"/>
+      {% elif p.pattern == "ikat" %}<path d="M0 8 L8 0 L16 8 L8 16Z" fill="rgba(255,255,255,.3)"/>
+      {% elif p.pattern == "flowers" %}<circle cx="8" cy="8" r="3" fill="none" stroke="rgba(120,120,120,.35)" stroke-width="1.2"/><circle cx="8" cy="8" r="1" fill="rgba(120,120,120,.4)"/>
+      {% endif %}
+    </pattern>
+  </defs>
+  <rect width="200" height="240" fill="#f3ede2"/>
+  {% if p.shape == "kurta" %}
+    <path d="M70 30 L88 24 Q100 34 112 24 L130 30 L168 64 L152 84 L136 72 L138 218 L62 218 L64 72 L48 84 L32 64 Z" fill="{{ p.colour }}"/>
+    <path d="M70 30 L88 24 Q100 34 112 24 L130 30 L168 64 L152 84 L136 72 L138 218 L62 218 L64 72 L48 84 L32 64 Z" fill="url(#pat-{{ p.sku }})"/>
+    <path d="M100 32 L100 74" stroke="rgba(0,0,0,.25)" stroke-width="2"/>
+    <circle cx="100" cy="46" r="2" fill="rgba(0,0,0,.35)"/><circle cx="100" cy="58" r="2" fill="rgba(0,0,0,.35)"/>
+  {% elif p.shape == "shirt" %}
+    <path d="M70 40 L90 32 L100 42 L110 32 L130 40 L166 70 L150 92 L136 80 L136 200 L64 200 L64 80 L50 92 L34 70 Z" fill="{{ p.colour }}"/>
+    <path d="M70 40 L90 32 L100 42 L110 32 L130 40 L166 70 L150 92 L136 80 L136 200 L64 200 L64 80 L50 92 L34 70 Z" fill="url(#pat-{{ p.sku }})"/>
+    <path d="M90 32 L100 52 L110 32" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2"/>
+    <path d="M100 52 L100 200" stroke="rgba(0,0,0,.2)" stroke-width="2"/>
+  {% elif p.shape == "saree" %}
+    <path d="M40 40 Q100 20 160 40 L170 210 Q100 228 30 210 Z" fill="{{ p.colour }}"/>
+    <path d="M40 40 Q100 20 160 40 L170 210 Q100 228 30 210 Z" fill="url(#pat-{{ p.sku }})"/>
+    <path d="M30 196 Q100 214 170 196 L170 210 Q100 228 30 210 Z" fill="rgba(201,154,31,.9)"/>
+    <path d="M120 34 L160 40 L150 120 Z" fill="rgba(255,255,255,.18)"/>
+  {% else %}
+    <path d="M60 24 L140 24 L150 216 L50 216 Z" fill="{{ p.colour }}"/>
+    <path d="M60 24 L140 24 L150 216 L50 216 Z" fill="url(#pat-{{ p.sku }})"/>
+    <path d="M50 200 L150 200 L150 216 L50 216 Z" fill="rgba(201,154,31,.85)"/>
+    {% for x in range(56, 150, 10) %}<line x1="{{ x }}" y1="216" x2="{{ x }}" y2="230" stroke="{{ p.colour }}" stroke-width="2"/>{% endfor %}
+  {% endif %}
+</svg>
+{% endmacro %}
+
+{% macro card(p) %}
+<article class="card">
+  <a href="{{ url_for('product', slug=p.slug) }}" class="card-link">
+    {{ garment(p) }}
+    <h3>{{ p.name }}</h3>
+    <p class="meta">{{ p.fabric }}</p>
+  </a>
+  <p class="price"><strong>{{ p.price|rupees }}</strong>{% if p.mrp > p.price %} <s>{{ p.mrp|rupees }}</s> <span class="off">{{ ((1 - p.price / p.mrp) * 100)|round|int }}% off</span>{% endif %}</p>
+</article>
+{% endmacro %}

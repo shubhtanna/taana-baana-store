@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ title or "Page not found" }} · Taana Baana{% endblock %}
+{% block content %}
+<section class="wrap thanks">
+  <h1 class="page">{{ title or "This thread came loose" }}</h1>
+  <p class="lead">{{ message or "We couldn't find the page you were looking for." }}</p>
+  <a class="btn" href="{{ url_for('home') }}">Back to the shop</a>
+</section>
+{% endblock %}

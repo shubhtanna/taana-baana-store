@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Taana Baana · Handloom clothing, made by hand in India{% endblock %}</title>
+  <meta name="description" content="{% block description %}Handwoven kurtas, shirts, sarees and dupattas from weaving clusters across India.{% endblock %}">
+  <link rel="icon" href="{{ url_for('static', filename='favicon.svg') }}" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Karla:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="strip">Free shipping above ₹{{ "{:,}".format(free_from) }} · Easy 15-day exchanges · Cash on delivery</div>
+  <header class="site">
+    <div class="wrap bar">
+      <a href="{{ url_for('home') }}" class="logo">Taana<span>·</span>Baana</a>
+      <nav>{% for c in categories %}<a href="{{ url_for('collection', slug=c.slug) }}">{{ c.name }}</a>{% endfor %}</nav>
+      <form action="{{ url_for('search') }}" class="mini-search"><input name="q" placeholder="Search" aria-label="Search"></form>
+      <a href="{{ url_for('cart') }}" class="bag-link">Bag{% if cart_count %} <span class="count">{{ cart_count }}</span>{% endif %}</a>
+    </div>
+  </header>
+  {% with msgs = get_flashed_messages(with_categories=true) %}{% if msgs %}<div class="wrap">{% for cls, m in msgs %}<p class="flash {{ cls }}">{{ m }}</p>{% endfor %}</div>{% endif %}{% endwith %}
+  <main>{% block content %}{% endblock %}</main>
+  <footer class="site">
+    <div class="wrap cols">
+      <div><p class="logo small">Taana<span>·</span>Baana</p><p class="muted">Handloom clothing from 23 weaving families across India. Started in Jaipur in 2018.</p></div>
+      <div><h4>Shop</h4>{% for c in categories %}<a href="{{ url_for('collection', slug=c.slug) }}">{{ c.name }}</a>{% endfor %}</div>
+      <div><h4>Help</h4><a href="{{ url_for('shipping') }}">Shipping &amp; exchanges</a><a href="{{ url_for('about') }}">Our weavers</a></div>
+    </div>
+    <p class="wrap demo">Demo store built for testing AI shopping agents. No real orders, payments or deliveries.</p>
+  </footer>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

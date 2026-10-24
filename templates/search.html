@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% from "_macros.html" import card %}
+{% block title %}Search · Taana Baana{% endblock %}
+{% block content %}
+<section class="wrap">
+  <h1 class="page">Search</h1>
+  <form class="search"><input name="q" value="{{ q }}" placeholder="Kurta, ikat, khadi…"><button class="btn">Search</button></form>
+  {% if q %}<p class="muted">{{ results|length }} result{{ "" if results|length == 1 else "s" }} for “{{ q }}”</p>{% endif %}
+  <div class="grid">{% for p in results %}{{ card(p) }}{% endfor %}</div>
+</section>
+{% endblock %}

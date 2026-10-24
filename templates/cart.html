@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% from "_macros.html" import garment %}
+{% block title %}Your bag · Taana Baana{% endblock %}
+{% block content %}
+<section class="wrap">
+  <h1 class="page">Your bag</h1>
+  {% if cart.lines %}
+  <div class="bag">
+    <div>
+      {% for l in cart.lines %}
+      <div class="line">
+        <div class="mini">{{ garment(l.p) }}</div>
+        <div><a href="{{ url_for('product', slug=l.p.slug) }}">{{ l.p.name }}</a><small>Size {{ l.size }} · {{ l.p.price|rupees }} each</small></div>
+        <form method="post" action="{{ url_for('cart_update') }}" class="qty">
+          <input type="hidden" name="csrf" value="{{ csrf_token() }}"><input type="hidden" name="sku" value="{{ l.p.sku }}"><input type="hidden" name="size" value="{{ l.size }}">
+          <button name="qty" value="{{ l.qty - 1 }}" aria-label="Fewer">−</button><span>{{ l.qty }}</span><button name="qty" value="{{ l.qty + 1 }}" aria-label="More">+</button>
+        </form>
+        <strong>{{ l.total|rupees }}</strong>
+      </div>
+      {% endfor %}
+    </div>
+    <aside class="sum">
+      <p><span>Subtotal</span><span>{{ cart.subtotal|rupees }}</span></p>
+      <p><span>Shipping</span><span>{{ cart.shipping|rupees if cart.shipping else "Free" }}</span></p>
+      <p class="total"><span>Total</span><span>{{ cart.total|rupees }}</span></p>
+      {% if cart.shipping %}<p class="note">Add {{ cart.to_free|rupees }} more for free shipping.</p>{% endif %}
+      <a class="btn wide" href="{{ url_for('checkout') }}">Checkout</a>
+    </aside>
+  </div>
+  {% else %}
+  <p class="muted">Your bag is empty.</p>
+  <a class="btn" href="{{ url_for('collection', slug='kurtas') }}">Shop kurtas</a>
+  {% endif %}
+</section>
+{% endblock %}
