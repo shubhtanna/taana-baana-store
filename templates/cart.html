@@ -24,7 +24,7 @@
       <p><span>Shipping</span><span>{{ cart.shipping|rupees if cart.shipping else "Free" }}</span></p>
       <p class="total"><span>Total</span><span>{{ cart.total|rupees }}</span></p>
       {% if cart.shipping %}<p class="note">Add {{ cart.to_free|rupees }} more for free shipping.</p>{% endif %}
-      <a class="btn wide" href="{{ url_for('checkout') }}">Checkout</a>
+      <a class="btn wide" href="{{ url_for('checkout', items=cart['lines']|map(attribute='param')|join(',')) if cart.lines else url_for('checkout') }}">Checkout</a>
     </aside>
   </div>
   {% else %}

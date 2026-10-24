@@ -2,6 +2,9 @@
 {% from "_macros.html" import card, garment %}
 {% block title %}{{ p.name }} · Taana Baana{% endblock %}
 {% block description %}{{ p.description }}{% endblock %}
+{% block head %}
+<script type="application/ld+json">{{ ld_json|safe }}</script>
+{% endblock %}
 {% block content %}
 <section class="wrap pdp">
   <div class="pdp-art">{{ garment(p, "big") }}</div>
@@ -16,7 +19,7 @@
       <input type="hidden" name="sku" value="{{ p.sku }}">
       <label class="size-label">Size
         <select name="size" id="size" required data-sizes='{{ p.sizes|tojson }}' data-soldout='{{ p.soldout|tojson }}'>
-          <option value="">Select size</option>
+          {% for s in available %}<option value="{{ s }}"{% if loop.first %} selected{% endif %}>{{ s }}</option>{% endfor %}
         </select>
       </label>
       <div class="size-buttons" id="size-buttons" aria-hidden="true"></div>
